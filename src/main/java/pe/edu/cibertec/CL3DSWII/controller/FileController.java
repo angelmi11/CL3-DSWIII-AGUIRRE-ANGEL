@@ -3,6 +3,7 @@ package pe.edu.cibertec.CL3DSWII.controller;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +18,6 @@ import java.util.List;
 @AllArgsConstructor
 @RestController
 @RequestMapping("api/v1/files")
-
 public class FileController {
 
     private FileService fileService;
@@ -29,36 +29,24 @@ public class FileController {
                 .body( ResponseFile.builder().message("Los archivos fueron cargados correctamente al servidor").build());
     }
 
-
-    @PostMapping("/filesimages")
-    public ResponseEntity<ResponseFile> uploadImageFiles(@RequestParam("files") List<MultipartFile> files) {
+    @PreAuthorize("hasRole('GESTOR')")
+    @PostMapping("/images")
+    public ResponseEntity<ResponseFile> uploadImages(@RequestParam("files") List<MultipartFile> files) throws Exception {
         for (MultipartFile file : files) {
-            if (!file.getOriginalFilename().toLowerCase().endsWith(".png")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ResponseFile.builder().message("Solo se permiten archivos con extensión PNG en /filesimages").build());
-            }
+            fileService.saveImage(file);
         }
-
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ResponseFile.builder().message("Los archivos de imágenes fueron cargados correctamente").build());
+                .body( ResponseFile.builder().message("Las imágenes fueron cargadas correctamente al servidor").build());
     }
 
-    @PostMapping("/filesexcel")
-    public ResponseEntity<ResponseFile> uploadExcelFiles(@RequestParam("files") List<MultipartFile> files) {
-        // Validar que la extensión del archivo sea XLSX y el tamaño máximo del archivo sea 1.5MB
+    @PreAuthorize("hasRole('COORDINADOR')")
+    @PostMapping("/excel")
+    public ResponseEntity<ResponseFile> uploadExcelFiles(@RequestParam("files") List<MultipartFile> files) throws Exception {
         for (MultipartFile file : files) {
-            if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ResponseFile.builder().message("Solo se permiten archivos con extensión XLSX en /filesexcel").build());
-            }
-            if (file.getSize() > 1.5 * 1024 * 1024) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(ResponseFile.builder().message("El tamaño máximo del archivo es 1.5MB en /filesexcel").build());
-            }
+            fileService.saveExcel(file);
         }
-
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ResponseFile.builder().message("Los archivos de Excel fueron cargados correctamente").build());
+                .body( ResponseFile.builder().message("Los archivos Excel fueron cargados correctamente al servidor").build());
     }
 
 }

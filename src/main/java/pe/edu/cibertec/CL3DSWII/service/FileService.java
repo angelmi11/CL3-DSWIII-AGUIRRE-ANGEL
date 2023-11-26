@@ -26,23 +26,21 @@ public class FileService {
     }
 
 
-    public void saveImages(List<MultipartFile> files) throws Exception {
-        for (MultipartFile file : files) {
-            if (!file.getOriginalFilename().toLowerCase().endsWith(".png")) {
-                throw new IllegalArgumentException("Solo se permiten archivos con extensión PNG en /filesimages");
-            }
+    public void saveImage(MultipartFile file) throws Exception {
+        String filename = file.getOriginalFilename();
+        if(filename.endsWith(".png")) {
+            Files.copy(file.getInputStream(), this.imagesFolder.resolve(filename));
+        } else {
+            throw new Exception("El archivo no es una imagen PNG");
         }
     }
 
-    public void saveExcel(List<MultipartFile> files) throws Exception {
-        for (MultipartFile file : files) {
-            if (!file.getOriginalFilename().toLowerCase().endsWith(".xlsx")) {
-                throw new IllegalArgumentException("Solo se permiten archivos con extensión XLSX en /filesexcel");
-            }
-            if (file.getSize() > 1.5 * 1024 * 1024) {
-                throw new IllegalArgumentException("El tamaño máximo del archivo es 1.5MB en /filesexcel");
-            }
-
+    public void saveExcel(MultipartFile file) throws Exception {
+        String filename = file.getOriginalFilename();
+        if(filename.endsWith(".xlsx") && file.getSize() <= 1500000) {
+            Files.copy(file.getInputStream(), this.excelFolder.resolve(filename));
+        } else {
+            throw new Exception("El archivo no es un Excel XLSX o es mayor a 1.5MB");
         }
     }
 
